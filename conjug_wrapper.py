@@ -55,7 +55,6 @@ class Conjug:
                 Conjug.__record.update({og_verb.lower() : (part_of_speech.lower(), ("se " if contains else "") + "pasaron")})
                 return ("se " if contains else "") + "pasaron"
         
-        print(infinitive)
         iteratable = Conjug.__conjugator.conjugate(infinitive).iterate()
     
         for conjugation in iteratable:

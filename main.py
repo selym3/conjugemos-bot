@@ -2,16 +2,15 @@ from conjug_wrapper import Conjug
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
+import env
 
 class SeleniumTest:
 
-    email = "mpasetsky30@stuy.edu"
-    password = "kanye!banana!sauce!3"
-
-    max_correct = 70
+    max_correct = 250
+    target_time = 1 * 60
 
     def __init__(self):
-        self.driver = webdriver.Chrome(executable_path=r"C:\Users\mp3bl\Desktop\conjug\chromedriver\chromedriver")
+        self.driver = webdriver.Chrome(executable_path=r"C:\Users\mp3bl\Desktop\conjugemos-bot\chromedriver\chromedriver")
         self.conjugator = Conjug()
         pass
 
@@ -33,13 +32,13 @@ class SeleniumTest:
 
         # switch to google sign in frame
         login = self.driver.find_element_by_id("identifierId")
-        login.send_keys(SeleniumTest.email)
+        login.send_keys(env.email)
         login.send_keys(Keys.RETURN)
 
         time.sleep(5)
 
         password = self.driver.find_element_by_xpath("/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[1]/div/form/span/section/div/div/div[1]/div[1]/div/div/div/div/div[1]/div/div[1]/input")
-        password.send_keys(SeleniumTest.password)
+        password.send_keys(env.password)
         password.send_keys(Keys.RETURN)
 
         time.sleep(5)
@@ -49,70 +48,64 @@ class SeleniumTest:
         time.sleep(5)
 
         # click on lesson with pretirite
-        self.driver.find_element_by_xpath("/html/body/div[4]/div/div[3]/div[2]/div[1]/div/a").click()
-        #self.driver.find_element_by_xpath("/html/body/div[4]/div/div[3]/div[2]/div[7]/div/a").click()
-        # self.driver.find_element_by_xpath("/html/body/div[4]/div/div[3]/div[2]/div[6]/div/a").click()
+        # self.driver.find_element_by_xpath("/html/body/div[4]/div/div[3]/div[2]/div[1]/div/a").click()
+        # self.driver.find_element_by_xpath("/html/body/div[4]/div/div[3]/div[2]/div[7]/div/a").click()
+        self.driver.find_element_by_xpath("/html/body/div[4]/div/div[3]/div[2]/div[6]/div/a").click()
 
         self.driver.find_element_by_xpath("/html/body/div[2]/form/div[1]/div[1]/a[1]").click()
 
         time.sleep(5)
         self.driver.find_element_by_xpath("/html/body/div[2]/div[1]/div[1]").click()
 
-        time.sleep(2)
-
         counter = 0
 
         while counter < SeleniumTest.max_correct:
-            time.sleep(0.05)
+            try:
+                time.sleep(SeleniumTest.target_time / (SeleniumTest.max_correct))
 
-            counter += 1
+                pronoun = self.driver.execute_script('return document.getElementById("pronoun-input").innerHTML')
 
-            pronoun = self.driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[2]/div[1]/div/div[3]").text
-            verb = self.driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[2]/div[1]/div/div[4]").text
+                pronoun_parts = pronoun.split()
 
-            pronoun_parts = pronoun.split(" ")
+                tense = ""
 
-            # input box
-            i = self.driver.find_element_by_xpath("/html/body/div[2]/div[2]/div[2]/div[2]/div/input")
-
-            if pronoun == "yo":
-                i.send_keys(self.conjugator.get(Conjug.first_singular,verb))
-                i.send_keys(Keys.RETURN)
-            elif pronoun == "tú":
-                i.send_keys(self.conjugator.get(Conjug.second_singular,verb))
-                i.send_keys(Keys.RETURN)
-            elif pronoun in ["él","ella","usted"]:
-                i.send_keys(self.conjugator.get(Conjug.third_singular,verb))
-                i.send_keys(Keys.RETURN)
-            elif pronoun == "nosotros":
-                i.send_keys(self.conjugator.get(Conjug.first_plural,verb))
-                i.send_keys(Keys.RETURN)
-            elif pronoun == "vosotros":
-                i.send_keys(self.conjugator.get(Conjug.second_plural,verb))
-                i.send_keys(Keys.RETURN)
-            elif pronoun in ["ellos","ellas","ustedes"]:
-                i.send_keys(self.conjugator.get(Conjug.third_plural,verb))
-                i.send_keys(Keys.RETURN)
-            elif len(pronoun_parts) == 3:
-                if pronoun_parts[2] == "yo":
-                    i.send_keys(self.conjugator.get(Conjug.first_plural,verb))
-                    i.send_keys(Keys.RETURN)
+                if pronoun[0] == 'y': #yo comparison
+                    tense = Conjug.first_singular
+                elif pronoun[0] == "t": #tu comparison
+                    tense = Conjug.second_singular
+                elif pronoun[0] == "n": # nosotros
+                    tense = Conjug.first_plural
+                elif pronoun[0] == "v": # vosotros
+                    tense = Conjug.second_plural
+                elif len(pronoun_parts) == 3:
+                    if pronoun_parts[2][0] == "y": # check for last yo
+                        tense = Conjug.first_plural 
+                    else:
+                        tense = Conjug.third_plural
+                elif pronoun[len(pronoun)-1] == 's': # ellas, ellas, ustedes
+                    tense = Conjug.third_plural
+                elif len(pronoun_parts) == 1:
+                    tense = Conjug.third_singular
                 else:
-                    i.send_keys(self.conjugator.get(Conjug.third_plural,verb))
-                    i.send_keys(Keys.RETURN)
-            elif len(pronoun_parts) == 1:
-                i.send_keys(self.conjugator.get(Conjug.third_singular,verb))
-                i.send_keys(Keys.RETURN)
-            else:
-                counter -= 1
-                pass
-        self.stop()
+                    print(pronoun + " " + verb)
+                    continue
+                
+                verb = self.driver.execute_script('return document.getElementById("verb-input").innerHTML')    
+
+                self.sendToInput(self.conjugator.get(tense,verb))
+
+                counter += 1
+
+            except Exception as e:
+                print(e)
 
     def stop(self):
         self.driver.close()
 
-
-
+    def sendToInput(self, inp: str):
+        self.driver.execute_script('document.getElementById("answer-input").value="{}";'.format(inp))
+        self.driver.execute_script('document.getElementById("check-button").click();')
+        
 test = SeleniumTest()
 
 test.start()
