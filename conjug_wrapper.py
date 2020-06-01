@@ -67,7 +67,7 @@ class Conjug:
         
         try:
             iteratable = Conjug.__conjugator.conjugate(infinitive).iterate()
-        except Exception as identifier:
+        except:
             return ''
 
         for conjugation in iteratable:
