@@ -10,7 +10,7 @@ class SeleniumTest:
     target_time = 1 * 60
 
     def __init__(self):
-        self.driver = webdriver.Chrome(executable_path=r"C:\Users\mp3bl\Desktop\conjugemos-bot\chromedriver\chromedriver")
+        self.driver = webdriver.Chrome(executable_path=env.path)
         self.conjugator = Conjug()
         pass
 
@@ -87,7 +87,7 @@ class SeleniumTest:
                 elif len(pronoun_parts) == 1:
                     tense = Conjug.third_singular
                 else:
-                    print(pronoun + " " + verb)
+                    #print(pronoun + " " + verb)
                     continue
                 
                 verb = self.driver.execute_script('return document.getElementById("verb-input").innerHTML')    

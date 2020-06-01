@@ -23,6 +23,16 @@ class Conjug:
     def __init__(self):
         pass
 
+    def get_all(self, infinitive: str):
+        return {
+            Conjug.first_singular: self.get(Conjug.first_singular, infinitive),
+            Conjug.second_singular: self.get(Conjug.second_singular, infinitive),
+            Conjug.third_singular: self.get(Conjug.third_singular, infinitive),
+            Conjug.first_plural: self.get(Conjug.first_plural, infinitive),
+            Conjug.second_plural: self.get(Conjug.second_plural, infinitive),
+            Conjug.third_plural: self.get(Conjug.third_plural, infinitive)
+        }
+
     def get(self, part_of_speech: str, infinitive: str) -> str:
         if infinitive.lower() in Conjug.__record:
             if Conjug.__record[infinitive][0] == part_of_speech.lower():
@@ -55,8 +65,11 @@ class Conjug:
                 Conjug.__record.update({og_verb.lower() : (part_of_speech.lower(), ("se " if contains else "") + "pasaron")})
                 return ("se " if contains else "") + "pasaron"
         
-        iteratable = Conjug.__conjugator.conjugate(infinitive).iterate()
-    
+        try:
+            iteratable = Conjug.__conjugator.conjugate(infinitive).iterate()
+        except Exception as identifier:
+            return ''
+
         for conjugation in iteratable:
             if conjugation[1] == Conjug.__tense and conjugation[2] == part_of_speech:
                 correct = (Conjug.abbrev[part_of_speech] if contains else "") + conjugation[3]
